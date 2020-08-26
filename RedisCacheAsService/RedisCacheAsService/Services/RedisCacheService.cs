@@ -42,23 +42,32 @@ namespace RedisCacheAsService.Services
             }
         }
 
-        public async Task Set(string key, string value)
+        public async Task SetStringAsync(string key, string value)
         {
             await _db.StringSetAsync(key, value);
         }
 
-        public async Task Set(string key, object value)
-        {
-            await _db.StringSetAsync(key, JsonConvert.SerializeObject(value));
-        }
-
-        public async Task<string> Get(string key)
+        public async Task<string> GetStringAsync(string key)
         {
             var res = await _db.StringGetAsync(key);
             return res;
         }
+
+        public async Task SetObjectAsync<T>(string key, T value) where T : class
+        {
+            var json = JsonConvert.SerializeObject(value);
+            await _db.StringSetAsync(key, json);
+        }
+
+        public async Task<T> GetObjectAsync<T>(string key) where T : class
+        {
+            var json = await _db.StringGetAsync(key);
+            if (!json.IsNullOrEmpty)
+                return JsonConvert.DeserializeObject<T>(json);
+            return null;
+        }
         
-        public async Task<bool> Remove(string key)
+        public async Task<bool> RemoveAsync(string key)
         {
             var res = await _db.KeyDeleteAsync(key);
             return res;
@@ -69,7 +78,11 @@ namespace RedisCacheAsService.Services
             var res = await _db.StringGetAsync(key);
             return !res.IsNullOrEmpty;
         }
-        
+
+
+
+        #region Private Methods
+
         private void GetDb()
         {
             _db = _connectionMultiplexer.GetDatabase(1);
@@ -102,5 +115,8 @@ namespace RedisCacheAsService.Services
             }
             return false;
         }
+
+        #endregion
+
     }
 }

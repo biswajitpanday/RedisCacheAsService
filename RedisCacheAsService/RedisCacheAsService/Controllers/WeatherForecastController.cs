@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using RedisCacheAsService.Interfaces;
 using RedisCacheAsService.Models;
 using RedisCacheAsService.Services;
 
@@ -13,7 +14,7 @@ namespace RedisCacheAsService.Controllers
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {
-        private readonly RedisCacheService _cacheService;
+        private readonly ICacheService _cacheService;
         
         private static readonly string[] Summaries = new[]
         {
@@ -22,7 +23,7 @@ namespace RedisCacheAsService.Controllers
 
         private readonly ILogger<WeatherForecastController> _logger;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger, RedisCacheService cacheService)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, ICacheService cacheService)
         {
             _logger = logger;
             _cacheService = cacheService;
@@ -44,13 +45,13 @@ namespace RedisCacheAsService.Controllers
         [HttpPost("StoreInCache")]
         public async Task StoreInCache(CacheRequestModel cacheRequestModel)
         {
-            await _cacheService.Set(cacheRequestModel.Key, cacheRequestModel.Value);
+            await _cacheService.SetStringAsync(cacheRequestModel.Key, cacheRequestModel.Value);
         }
 
         [HttpGet("GetFromCache")]
         public async Task<IActionResult> GetFromCache(string key)
         {
-            var data = await _cacheService.Get(key);
+            var data = await _cacheService.GetStringAsync(key);
             return Ok(data);
         }
     }

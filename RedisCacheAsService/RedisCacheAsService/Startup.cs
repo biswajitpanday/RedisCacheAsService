@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RedisCacheAsService.Helpers;
+using RedisCacheAsService.Interfaces;
 using RedisCacheAsService.Services;
 
 namespace RedisCacheAsService
@@ -24,6 +25,7 @@ namespace RedisCacheAsService
             MapApplicationConfig();
 
             services.AddSingleton<RedisCacheService>();
+            services.AddScoped<ICacheService, RedisCacheService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
