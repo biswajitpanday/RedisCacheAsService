@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using RedisCacheAsService.Models;
+using RedisCacheAsService.Services;
 
 namespace RedisCacheAsService.Controllers
 {
@@ -11,6 +13,8 @@ namespace RedisCacheAsService.Controllers
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {
+        private readonly RedisCacheService _cacheService;
+        
         private static readonly string[] Summaries = new[]
         {
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
@@ -18,9 +22,10 @@ namespace RedisCacheAsService.Controllers
 
         private readonly ILogger<WeatherForecastController> _logger;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, RedisCacheService cacheService)
         {
             _logger = logger;
+            _cacheService = cacheService;
         }
 
         [HttpGet]
@@ -34,6 +39,19 @@ namespace RedisCacheAsService.Controllers
                 Summary = Summaries[rng.Next(Summaries.Length)]
             })
             .ToArray();
+        }
+
+        [HttpPost("StoreInCache")]
+        public async Task StoreInCache(CacheRequestModel cacheRequestModel)
+        {
+            await _cacheService.Set(cacheRequestModel.Key, cacheRequestModel.Value);
+        }
+
+        [HttpGet("GetFromCache")]
+        public async Task<IActionResult> GetFromCache(string key)
+        {
+            var data = await _cacheService.Get(key);
+            return Ok(data);
         }
     }
 }
